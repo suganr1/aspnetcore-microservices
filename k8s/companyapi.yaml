@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: companyapi-deployment
+  labels:
+    app: companyapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: companyapi
+  template:
+    metadata:
+      labels:
+        app: companyapi
+    spec:
+      containers:
+        - name: companyapi
+          image: stockmarketfse.azurecr.io/companysapi:try
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+            - name: ConnectionStrings__ConnectionString
+              value: Server=estocksqlserve.database.windows.net; Initial Catalog=ECompany; User Id=sacompany; Password=Company@SuganR1;
+              # valueFrom:
+              #   configMapKeyRef:
+              #     name: sql-configmap
+              #     key: connection_string
+            - name: EventBusSettings__HostAddress
+              value: amqp://guest:guest@rabbitmq-service:5672
+            - name: ElasticConfiguration__Uri
+              #value: http://elasticsearch:9200
+              valueFrom:
+                configMapKeyRef:
+                  name: aggregator-configmap
+                  key: elasticsearch_url
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "0.1"
+            limits:
+              memory: "128Mi"
+              cpu: "0.3"
+      imagePullSecrets:
+        - name: acr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: companyapi-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: companyapi
+  ports:
+    - protocol: TCP
+      port: 80

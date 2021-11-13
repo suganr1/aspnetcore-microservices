@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocelotapi-deployment
+  labels:
+    app: ocelotapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ocelotapi
+  template:
+    metadata:
+      labels:
+        app: ocelotapi
+    spec:
+      containers:
+        - name: ocelotapi
+          image: stockmarketfse.azurecr.io/ocelotgwapi:v2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+            - name: UIConfiguration__Uri
+              value: http://52.140.82.172:8080
+              # valueFrom:
+              #   configMapKeyRef:
+              #     name: ocelot-configmap
+              #     key: estockui_url
+            - name: ElasticConfiguration__Uri
+              #value: http://elasticsearch:9200
+              valueFrom:
+                configMapKeyRef:
+                  name: aggregator-configmap
+                  key: elasticsearch_url
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "0.1"
+            limits:
+              memory: "128Mi"
+              cpu: "0.3"
+      imagePullSecrets:
+        - name: acr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ocelotapi-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: ocelotapi
+  ports:
+    - protocol: TCP
+      port: 80

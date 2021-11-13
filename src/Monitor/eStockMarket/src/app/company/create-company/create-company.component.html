@@ -1,0 +1,99 @@
+<section fxLayout="row wrap" fxLayoutAlign="center center">
+  <mat-card fxFlex="500px" fxFlex.xs="100%">
+    <mat-card-title>Create a new company</mat-card-title>
+    <form [formGroup]="myForm" (ngSubmit)="submitForm()" novalidate fxLayout="column wrap" fxLayoutAlign="center center"
+      fxLayoutGap="10px">
+      <mat-card-content>
+        <!-- Name -->
+        <mat-form-field appearance="standard">
+          <mat-label>Company Name</mat-label>
+          <input matInput type="text" formControlName="name" required>
+          <!-- appUpperCase -->
+          <!-- error -->
+          <mat-hint>3 - 60 characters long: Alphabets Only</mat-hint>
+          <mat-error *ngIf="myForm.controls.name.hasError('required')">
+            Please enter company name
+          </mat-error>
+          <mat-error *ngIf="myForm.controls.name.hasError('pattern')">
+            Please enter valid company name
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Code -->
+        <mat-form-field appearance="standard">
+          <mat-label>Company Code</mat-label>
+          <input matInput type="text" formControlName="code" required>
+          <!-- (input)="changeTextToUppercase('code')" -->
+          <!-- error -->
+          <mat-hint>3 - 8 characters long: Alphanumeric</mat-hint>
+          <mat-error *ngIf="myForm.controls.code.hasError('required')">
+            Please enter company code
+          </mat-error>
+          <mat-error *ngIf="myForm.controls.code.hasError('pattern')">
+            Please enter valid company code
+          </mat-error>
+          <mat-error *ngIf="myForm.controls.code.hasError('notUnique')">
+            Please enter a different code, this code already taken
+          </mat-error>
+        </mat-form-field>
+
+        <!-- CEO -->
+        <mat-form-field appearance="standard">
+          <mat-label>Company CEO</mat-label>
+          <input matInput formControlName="ceo" required>
+          <!-- error -->
+          <mat-hint>5 - 25 characters long: Alphabets Only</mat-hint>
+          <mat-error *ngIf="myForm.controls.ceo.hasError('required')">
+            Please enter company CEO
+          </mat-error>
+          <mat-error *ngIf="myForm.controls.ceo.hasError('pattern')">
+            Please enter valid company CEO
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Company TurnOver -->
+        <mat-form-field appearance="standard">
+          <mat-label>Company Turnover</mat-label>
+          <input matInput formControlName="turnOver" required>
+          <!-- error -->
+          <mat-hint>9 - 16 numbers long <br /> Must be greater than 10 Crores - Numbers Only</mat-hint>
+          <mat-error *ngIf="myForm.controls.turnOver.hasError('required')">
+            Please enter company Turnover
+          </mat-error>
+          <mat-error *ngIf="myForm.controls.turnOver.hasError('pattern')">
+            Please enter valid Company Turnover
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Company Website -->
+        <mat-form-field appearance="standard">
+          <mat-label>Company Website</mat-label>
+          <input matInput formControlName="website" required
+            pattern="^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$">
+          <!-- error -->
+          <mat-hint>Not more than 60 characters long</mat-hint>
+          <mat-error *ngIf="myForm.controls.website.hasError('required')">
+            Please enter company Website
+          </mat-error>
+          <mat-error *ngIf="myForm.controls.website.hasError('pattern')">
+            Please enter valid company Website
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="standard">
+          <mat-label>Select Exchange type</mat-label>
+          <mat-select formControlName="exchangeTypeId" required>
+            <mat-option>--</mat-option>
+            <mat-option *ngFor="let type of exchangeType" [value]="type.id">{{type.name}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </mat-card-content>
+      
+      <mat-card-actions>
+        <button mat-raised-button color="primary">Submit</button>
+        <button mat-raised-button color="warn" (click)="closeDialog()" tabindex="-1">Cancel</button>
+      </mat-card-actions>
+
+    </form>
+  </mat-card>
+</section>

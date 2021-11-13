@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stockapi-deployment
+  labels:
+    app: stockapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stockapi
+  template:
+    metadata:
+      labels:
+        app: stockapi
+    spec:
+      containers:
+        - name: stockapi
+          image: stockmarketfse.azurecr.io/stockapi:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+            - name: DatabaseSettings__ConnectionString
+              valueFrom:
+                configMapKeyRef:
+                  name: mongo-configmap
+                  key: connection_string            
+            - name: EventBusSettings__HostAddress
+              value: amqp://guest:guest@rabbitmq-service:5672
+            - name: ElasticConfiguration__Uri
+              #value: http://elasticsearch:9200
+              valueFrom:
+                configMapKeyRef:
+                  name: aggregator-configmap
+                  key: elasticsearch_url
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "0.1"
+            limits:
+              memory: "128Mi"
+              cpu: "0.3"
+      imagePullSecrets:
+        - name: acr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: stockapi-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: stockapi
+  ports:
+    - protocol: TCP
+      port: 80

@@ -1,0 +1,101 @@
+<mat-card fxFlex.xs="100%">
+    <mat-card-content fxLayout="row" fxLayout.xs="column" fxLayoutGap="20px">
+        <div fxFlex="10" fxLayoutAlign="start center">
+        </div>
+
+        <div fxFlex="20" fxLayoutAlign="start center">
+            <button mat-flat-button color="primary" (click)="addStock()">ADD STOCK</button>
+        </div>
+
+        <div fxFlex="55" fxLayoutAlign="start center">
+            <mat-form-field appearance="standard">
+                <mat-label>Enter a date range</mat-label>
+                <mat-date-range-input [formGroup]="range" [rangePicker]="picker">
+                    <input matStartDate formControlName="start" placeholder="START DATE">
+                    <input matEndDate formControlName="end" placeholder="END DATE"
+                        (dateChange)="dateRangeChange('change', $event)">
+                </mat-date-range-input>
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-date-range-picker #picker></mat-date-range-picker>
+
+                <mat-error *ngIf="range.controls.start.hasError('matStartDateInvalid')">Invalid start date</mat-error>
+                <mat-error *ngIf="range.controls.end.hasError('matEndDateInvalid')">Invalid end date</mat-error>
+            </mat-form-field>
+        </div>
+
+        <div fxFlex="10" fxLayoutAlign="start center">
+            <button mat-flat-button color="primary" [disabled]="!range.valid"
+                (click)="getStocksByDate()">SEARCH</button>
+        </div>
+    </mat-card-content>
+
+    <mat-card-content *ngIf="range.valid">
+        <mat-table [dataSource]="dataSource" matSort>
+            <ng-container matColumnDef="id">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Id </mat-header-cell>
+                <mat-cell *matCellDef="let row" data-label="id"> {{row.id}} </mat-cell>
+                <mat-footer-cell *matFooterCellDef> </mat-footer-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="price">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Stock Price </mat-header-cell>
+                <mat-cell *matCellDef="let row" data-label="price"> {{row.price | currency:'INR':'symbol-narrow'}}
+                </mat-cell>
+
+                <mat-footer-cell *matFooterCellDef>
+                    <span *ngIf="maxStock >= 0 && (stockList && stockList.length > 0)">
+                        <b>MAX: </b> {{maxStock | currency:'INR':'symbol-narrow'}}
+                    </span>
+                </mat-footer-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="createdDate">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Date </mat-header-cell>
+                <mat-cell *matCellDef="let row" data-label="createdDate">
+                    {{row.createdDate | date:'dd/MM/yyyy':'UTC +5:30'}}
+                </mat-cell>
+
+                <mat-footer-cell *matFooterCellDef>
+                    <span *ngIf="minStock >= 0 && (stockList && stockList.length > 0)">
+                        <b>MIN: </b> {{minStock | currency:'INR':'symbol-narrow'}}
+                    </span>
+                </mat-footer-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="createdTime">
+                <mat-header-cell *matHeaderCellDef mat-sort-header> Time </mat-header-cell>
+                <mat-cell *matCellDef="let row" data-label="createdTime">
+                    {{row.createdDate | date:'HH:mm:ss':'UTC +5:30'}}
+                </mat-cell>
+
+                <mat-footer-cell *matFooterCellDef [class.mat-footer-cell]="(stockList && stockList.length > 0)">
+                    <span *ngIf="avgStock >= 0 && (stockList && stockList.length > 0)">
+                        <b>AVG: </b> {{avgStock | currency:'INR':'symbol-narrow'}}
+                    </span>
+                </mat-footer-cell>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+                <mat-header-cell *matHeaderCellDef> Action </mat-header-cell>
+                <mat-cell *matCellDef="let row">
+                    <button mat-button color="warn" (click)="deleteStock(row)">Delete</button>
+                </mat-cell>
+                <mat-footer-cell *matFooterCellDef> </mat-footer-cell>
+            </ng-container>
+
+            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+            <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+            <mat-footer-row *matFooterRowDef="displayedColumns"
+                [style.display]="(stockList && stockList.length > 0) ? '' : 'none'">
+            </mat-footer-row>
+        </mat-table>
+
+        <div *ngIf="stockList.length === 0" fxLayoutAlign="center center">
+            <h3>NO STOCK(s) FOUND</h3>
+        </div>
+
+        <mat-paginator *ngIf="stockList && stockList.length > 3" [length]="20" [pageSize]="3"
+            [pageSizeOptions]="[3, 5, 10, 20]">
+        </mat-paginator>
+    </mat-card-content>
+</mat-card>

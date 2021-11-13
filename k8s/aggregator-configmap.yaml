@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aggregator-configmap
+data:
+  companyapi_url: http://companyapi-service
+  stockapi_url: http://stockapi-service
+  elasticsearch_url: http://elasticsearch:9200

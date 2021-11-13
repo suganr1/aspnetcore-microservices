@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: estockui-deployment
+  labels:
+    app: estockui
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: estockui
+  template:
+    metadata:
+      labels:
+        app: estockui
+    spec:
+      containers:
+        - name: estockui
+          image: stockmarketfse.azurecr.io/estockui:v7
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: testurl
+          lifecycle:
+            postStart:
+              exec:
+               command: ["/bin/sh", "-c", "envsubst < /usr/share/nginx/html/env_token.js > /usr/share/nginx/html/env.js"]
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "0.1"
+            limits:
+              memory: "128Mi"
+              cpu: "0.3"
+      imagePullSecrets:
+        - name: acr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: estockui-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: estockui
+  ports:
+    - protocol: TCP
+      port: 8080

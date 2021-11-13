@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: healthcheck-deployment
+  labels:
+    app: healthcheck
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: healthcheck
+  template:
+    metadata:
+      labels:
+        app: healthcheck
+    spec:
+      containers:
+        - name: healthcheck
+          image: stockmarketfse.azurecr.io/healthcheck:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+            - name: HealthChecksUI__HealthChecks__0__Name
+              value: Company Health Check
+            - name: HealthChecksUI__HealthChecks__0__Uri
+              value: http://companyapi-service/hc
+            - name: HealthChecksUI__HealthChecks__1__Name
+              value: Stock Health Check
+            - name: HealthChecksUI__HealthChecks__1__Uri
+              value: http://stockapi-service/hc
+            - name: HealthChecksUI__HealthChecks__2__Name
+              value: Aggregator Health Check
+            - name: HealthChecksUI__HealthChecks__2__Uri
+              value: http://aggregatorapi-service/hc
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "0.1"
+            limits:
+              memory: "128Mi"
+              cpu: "0.3"
+      imagePullSecrets:
+        - name: acr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: healthcheck-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: healthcheck
+  ports:
+    - protocol: TCP
+      port: 80

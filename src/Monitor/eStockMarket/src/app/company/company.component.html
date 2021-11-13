@@ -1,0 +1,136 @@
+<mat-card>
+  <mat-card-content fxLayout="row" fxLayout.xs="column" fxLayoutGap="20px">
+
+    <div fxFlex="10" fxLayoutAlign="start center">
+      <button mat-fab color="warn" aria-label="Some Logo">
+        <mat-icon>home</mat-icon>
+      </button>
+    </div>
+
+    <div fxFlex="20" fxLayoutAlign="start center">
+      <button class='button' mat-flat-button color="primary" (click)="addCompanyDialog()">ADD COMPANY</button>
+    </div>
+
+    <div fxFlex="20" fxLayoutAlign="start center">
+      <button class='button' mat-flat-button color="primary" (click)="getAllCompanies()">LIST ALL
+        COMPANIES</button>
+    </div>
+
+    <div fxFlex="35" fxLayoutAlign="end end" fxLayoutGap="10px">
+      <mat-form-field appearance="standard">
+        <input type="text" placeholder="SEARCH BY COMPANY CODE" matInput [formControl]="myControl"
+          [matAutocomplete]="auto" (ngModelChange)="searchText($event)">
+        <mat-autocomplete #auto="matAutocomplete">
+          <mat-option *ngFor="let option of filteredOptions | async" [value]="option"
+            (onSelectionChange)="onSelectedCompany(option)">
+            {{option}}
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+
+      <!-- <mat-form-field appearance="standard">
+        <mat-label>Search By Company Code</mat-label>
+        <input matInput type="text" [(ngModel)]="searchValue">
+      </mat-form-field> -->
+      <!-- <mat-form-field appearance="standard">
+        <mat-label>Select Exchange type</mat-label>
+        <mat-select [(ngModel)]="selectedCompany">
+          <mat-option>--</mat-option>
+          <mat-option *ngFor="let company of dropDownList" [value]="company.code">{{company.code}}</mat-option>
+        </mat-select>
+      </mat-form-field> -->
+    </div>
+
+    <div fxFlex="10" fxLayoutAlign="start center">
+      <button mat-flat-button color="primary" [disabled]="!searchValue" (click)="searchByCode()">SEARCH</button>
+    </div>
+  </mat-card-content>
+
+  <mat-card-content>
+    <mat-table [dataSource]="dataSource" multiTemplateDataRows matSort>
+      <ng-container matColumnDef="id">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Id </mat-header-cell>
+        <mat-cell *matCellDef="let row" data-label="id"> {{row.id}} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="code">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Code </mat-header-cell>
+        <mat-cell *matCellDef="let row" data-label="id"> {{row.code}} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Company </mat-header-cell>
+        <mat-cell *matCellDef="let row" data-label="progress"> {{row.name}} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="price">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Price </mat-header-cell>
+        <mat-cell *matCellDef="let row" data-label="progress"> {{row.price > 0 ? (row.price |
+          currency:'INR':'symbol-narrow':'1.2-2') : '-'}} </mat-cell>
+      </ng-container>
+
+      <!-- <ng-container matColumnDef="ceo">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> CEO </mat-header-cell>
+        <mat-cell *matCellDef="let row" data-label="name"> {{row.ceo}} </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="turnOver">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> TurnOver(Cr) </mat-header-cell>
+        <mat-cell *matCellDef="let row" data-label="turnOver">
+          {{getTurnOverValue(row.turnOver) | currency:'INR':'symbol-narrow':'1.2-2'}}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="website">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> Website </mat-header-cell>
+        <mat-cell *matCellDef="let row" data-label="website">
+          {{row.website}}
+        </mat-cell>
+      </ng-container> -->
+
+      <ng-container matColumnDef="exchangeTypeId">
+        <mat-header-cell *matHeaderCellDef mat-sort-header> ExchangeType </mat-header-cell>
+        <mat-cell *matCellDef="let row" data-label="exchangeType">
+          {{getExchangeValue(row.exchangeTypeId)}}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef> Actions </mat-header-cell>
+
+        <mat-cell *matCellDef="let row">
+          <!--<button mat-button color="primary">Edit</button> |-->
+          <button mat-button color="warn" (click)="deleteCompany(row.code)">Delete</button>
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="expandedDetail">
+        <mat-cell *matCellDef="let detail" class="highlighted">
+          <div>
+            <div><b>CEO:</b> {{detail.ceo}}</div>
+            <div><b>TURNOVER <i>(in Crores)</i> :</b> {{getTurnOverValue(detail.turnOver) |
+              currency:'INR':'symbol-narrow':'1.2-2'}}</div>
+            <div><b>WEBSITE:</b> {{detail.website}}</div>
+          </div>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <!-- <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row> -->
+      <mat-row *matRowDef="let row; columns: displayedColumns;" matRipple class="element-row" (click)="expandRow(row)">
+      </mat-row>
+      <mat-row *matRowDef="let row; columns: ['expandedDetail'];" (click)="expandedElement = undefined"
+        [@detailExpand]="row == expandedElement ? 'expanded' : 'collapsed'" style="overflow: hidden">
+      </mat-row>
+    </mat-table>
+
+    <div *ngIf="companyList && companyList.length === 0" fxLayoutAlign="center center">
+      <h3>NO COMPANY(s) FOUND</h3>
+    </div>
+
+    <mat-paginator *ngIf="companyList && companyList.length > 3" [length]="20" [pageSize]="3"
+      [pageSizeOptions]="[3, 5, 10, 20]">
+    </mat-paginator>
+
+  </mat-card-content>
+</mat-card>

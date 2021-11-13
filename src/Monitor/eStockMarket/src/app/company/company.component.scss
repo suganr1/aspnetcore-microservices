@@ -1,0 +1,32 @@
+.company-container {
+  height: 400px;
+  max-width: 100%;
+  overflow: auto;
+}
+
+.company-container-search {
+  height: 110px;
+  max-width: 100%;
+  overflow: auto;
+}
+
+mat-form-field {
+  width: 70%;
+  text-transform: uppercase;
+}
+
+.element-row:not(.expanded) {
+  cursor: pointer;
+}
+
+.element-row:not(.expanded):hover {
+  background: #f5f5f5;
+}
+
+.mat-cell.highlighted {
+  background: skyblue;
+}
+
+.mat-card-content {
+  margin-bottom: 1px;
+}

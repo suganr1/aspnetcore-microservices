@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ocelot-configmap
+data:
+  estockui_url: http://estockui-service:8080

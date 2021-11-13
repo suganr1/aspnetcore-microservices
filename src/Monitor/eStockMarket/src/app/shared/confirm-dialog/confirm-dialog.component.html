@@ -1,0 +1,9 @@
+<h1 mat-dialog-title>{{data.title}}</h1>
+<mat-dialog-content>
+    <p>{{data.messageLine1}}</p>
+    <p>{{data.messageLine2}}</p>
+</mat-dialog-content>
+<mat-dialog-actions fxLayoutAlign="center center">
+    <button mat-raised-button color="primary" [mat-dialog-close]="true" tabindex="-1">Confirm</button>
+    <button mat-raised-button color="warn" [mat-dialog-close]="false" tabindex="-1">Cancel</button>
+</mat-dialog-actions>

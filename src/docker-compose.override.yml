@@ -1,0 +1,123 @@
+version: '3.4'
+
+services:
+  companydb:
+    container_name: companydb
+    environment:
+        SA_PASSWORD: "Company@SuganR1"
+        ACCEPT_EULA: "Y"
+    restart: always
+    ports:
+        - "1433:1433"
+    volumes:
+        - sql_data:/var/opt/mssql
+
+  stockdb:
+    container_name: stockdb
+    restart: always
+    ports:
+        - "27017:27017"
+    volumes:
+        - mongo_data:/data/db
+
+  rabbitmq:
+    container_name: rabbitmq
+    restart: always
+    ports:
+        - "5672:5672"
+        - "15672:15672"
+
+  companyapi-service:
+    container_name: companyapi-service
+    environment:
+        - ASPNETCORE_ENVIRONMENT=Development
+        - "ConnectionStrings:ConnectionString=Server=companydb;Database=ECompany;User Id=sa;Password=Company@SuganR1"            
+        - "ElasticConfiguration:Uri=http://elasticsearch:9200"
+        - "EventBusSettings:HostAddress=amqp://guest:guest@rabbitmq:5672"
+        
+    depends_on:
+        - companydb
+        - rabbitmq
+    ports:
+        - "8000:80"
+
+  stockapi-service:
+    container_name: stockapi-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "DatabaseSettings:ConnectionString=mongodb://stockdb:27017"
+      - "ElasticConfiguration:Uri=http://elasticsearch:9200"
+      - "EventBusSettings:HostAddress=amqp://guest:guest@rabbitmq:5672"
+    depends_on:
+      - stockdb
+    ports:
+      - "8001:80"
+
+  ocelotgw.api:
+    container_name: ocelotgwapi
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "ElasticConfiguration:Uri=http://elasticsearch:9200"
+      #- "UIConfiguration:Uri=http://estockmarket"
+    depends_on:
+        - companyapi-service
+        - stockapi-service
+    ports:
+      - "8010:80"
+
+  aggregatorapi-service:
+    container_name: aggregatorapi-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "ApiSettings:CompanyUrl=http://companyapi-service"
+      - "ApiSettings:StockUrl=http://stockapi-service"
+      - "ElasticConfiguration:Uri=http://elasticsearch:9200"
+    depends_on:
+        - companyapi-service
+        - stockapi-service
+    ports:
+        - "8005:80"
+
+  healthchkapi-service:
+    container_name: healthchkapi-service
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - HealthChecksUI__HealthChecks__0__Name=Company Health Check
+      - HealthChecksUI__HealthChecks__0__Uri=http://companyapi-service/hc
+      - HealthChecksUI__HealthChecks__1__Name=Stock Health Check
+      - HealthChecksUI__HealthChecks__1__Uri=http://stockapi-service/hc
+      - HealthChecksUI__HealthChecks__2__Name=Aggregator Health Check
+      - HealthChecksUI__HealthChecks__2__Uri=http://aggregatorapi-service/hc
+    ports:
+      - "8006:80"
+
+  elasticsearch:
+    container_name: elasticsearch
+    environment:
+        - xpack.monitoring.enabled=true
+        - xpack.watcher.enabled=false
+        - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        - discovery.type=single-node
+    ports:
+        - "9200:9200"
+    volumes:
+        - elasticsearch-data:/usr/share/elasticsearch/data   
+
+  kibana:
+    container_name: kibana
+    environment:        
+        - ELASTICSEARCH_URL=http://elasticsearch:9200
+    depends_on:
+        - elasticsearch
+    ports:
+        - "5601:5601"
+
+  #estockmarket:
+  #  container_name: estockmarket
+  #  ports:
+  #     - "4200:80"
+    #depends_on:
+    #   - companydb
+    #   - stockdb
+    #   - companyapi-service
+    #   - stockapi-service

@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aggregatorapi-deployment
+  labels:
+    app: aggregatorapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aggregatorapi
+  template:
+    metadata:
+      labels:
+        app: aggregatorapi
+    spec:
+      containers:
+        - name: aggregatorapi
+          image: stockmarketfse.azurecr.io/aggregatorapi:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Development
+            - name: ApiSettings__CompanyUrl
+              #value: http://13.71.63.21
+              valueFrom:
+                configMapKeyRef:
+                  name: aggregator-configmap
+                  key: companyapi_url
+            - name: ApiSettings__StockUrl
+              #value: http://52.140.87.34/
+              valueFrom:
+                configMapKeyRef:
+                  name: aggregator-configmap
+                  key: stockapi_url
+            - name: ElasticConfiguration__Uri
+              #value: http://elasticsearch:9200
+              valueFrom:
+                configMapKeyRef:
+                  name: aggregator-configmap
+                  key: elasticsearch_url
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "0.1"
+            limits:
+              memory: "128Mi"
+              cpu: "0.3"
+      imagePullSecrets:
+        - name: acr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aggregatorapi-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: aggregatorapi
+  ports:
+    - protocol: TCP
+      port: 80

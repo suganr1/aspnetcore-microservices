@@ -1,0 +1,5 @@
+<app-company (returnValueToHome)="searchedValue($event)">
+</app-company>
+
+<app-stock *ngIf="showStockDetails" [stockList]="stockList" [companyCode]="searchedCompany">
+</app-stock>

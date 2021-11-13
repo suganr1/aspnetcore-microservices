@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq-deployment
+  labels:
+    app: rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - image: "docker.io/rabbitmq:management"
+          imagePullPolicy: Always
+          name: rabbitmq
+          ports:
+            - containerPort: 15672
+              name: http-port
+          volumeMounts:
+            - mountPath: /var/rabbitmqapp_home
+              name: rabbitmqapp-home
+      volumes:
+        - emptyDir: {}
+          name: rabbitmqapp-home
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: rabbitmq
+  ports:
+    - name: service
+      protocol: TCP
+      port: 5672
+      # targetPort: 5672
+      # nodePort: 31111
+    - name: ui
+      protocol: TCP
+      port: 15672
+      # targetPort: 15672
+      # nodePort: 31112
